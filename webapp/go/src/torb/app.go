@@ -18,6 +18,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
+	"github.com/kaz/pprotein/integration/echov4"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -323,6 +324,8 @@ func main() {
 	}
 
 	e := echo.New()
+	echov4.EnableDebugHandler(e)
+
 	funcs := template.FuncMap{
 		"encode_json": func(v interface{}) string {
 			b, _ := json.Marshal(v)
