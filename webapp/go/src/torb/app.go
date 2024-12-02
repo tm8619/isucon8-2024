@@ -289,7 +289,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
 	}
 
-	eventCache.Set(string(eventID), &event, cache.DefaultExpiration)
+	eventCache.Set(string(eventID), event, cache.DefaultExpiration)
 
 	return &event, nil
 }
