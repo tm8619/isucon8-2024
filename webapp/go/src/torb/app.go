@@ -256,7 +256,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	if c, found := eventCache.Get("reservationMap"); found {
 		sheetReservationsMap = c.(map[int64]Reservation)
 	} else {
-		rows, err := db.Query("SELECT * FROM reservations WHERE canceled_at IS NULL")
+		rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL", event.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -595,6 +595,8 @@ func main() {
 		return c.JSON(200, sanitizeEvent(event))
 	})
 	e.POST("/api/events/:id/actions/reserve", func(c echo.Context) error {
+		eventCache.Delete("reservationMap")
+
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
@@ -665,6 +667,8 @@ func main() {
 		})
 	}, loginRequired)
 	e.DELETE("/api/events/:id/sheets/:rank/:num/reservation", func(c echo.Context) error {
+		eventCache.Delete("reservationMap")
+
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
@@ -725,6 +729,8 @@ func main() {
 		if err := tx.Commit(); err != nil {
 			return err
 		}
+
+		eventCache.Delete("reservationMap")
 
 		return c.NoContent(204)
 	}, loginRequired)
@@ -832,6 +838,8 @@ func main() {
 		return c.JSON(200, event)
 	}, adminLoginRequired)
 	e.POST("/admin/api/events/:id/actions/edit", func(c echo.Context) error {
+		eventCache.Delete("reservationMap")
+
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
