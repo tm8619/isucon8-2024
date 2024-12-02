@@ -292,7 +292,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
 	}
 
-	eventCache.Set(fmt.Sprint(eventID), event, cache.DefaultExpiration)
+	eventCache.Set(fmt.Sprint(eventID), &event, cache.DefaultExpiration)
 
 	return &event, nil
 }
