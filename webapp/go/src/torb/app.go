@@ -234,6 +234,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	if loginUserID == -1 {
 		if event, found := eventCache.Get(fmt.Sprint(eventID)); found {
 			e := event.(Event)
+			fmt.Println("cache hit #+v", e)
 			return &e, nil
 		}
 	}
@@ -294,6 +295,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 
 	eventCache.Set(fmt.Sprint(eventID), event, cache.DefaultExpiration)
+	fmt.Println("cache save #+v", event)
 
 	return &event, nil
 }
