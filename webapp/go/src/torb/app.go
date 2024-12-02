@@ -22,14 +22,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	cache "github.com/patrickmn/go-cache"
 )
-
-var eventCache *cache.Cache
-
-func init() {
-	eventCache = cache.New(700*time.Millisecond, 1*time.Second)
-}
 
 type User struct {
 	ID        int64  `json:"id,omitempty"`
@@ -230,10 +223,6 @@ func getEvents(all bool) ([]*Event, error) {
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
-	if event, found := eventCache.Get(string(eventID)); found {
-		return event.(*Event), nil
-	}
-
 	var event Event
 	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 		return nil, err
@@ -288,8 +277,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
 	}
-
-	eventCache.Set(string(eventID), event, cache.DefaultExpiration)
 
 	return &event, nil
 }
