@@ -230,14 +230,16 @@ func getEvents(all bool) ([]*Event, error) {
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
-	// 自分の席が分からなくて良い場合のみキャッシュ
-	if loginUserID == -1 {
-		if event, found := eventCache.Get(fmt.Sprint(eventID)); found {
-			e := event.(Event)
-			fmt.Println("cache hit #+v", e)
-			return &e, nil
+	/*
+		// 自分の席が分からなくて良い場合のみキャッシュ
+		if loginUserID == -1 {
+			if event, found := eventCache.Get(fmt.Sprint(eventID)); found {
+				e := event.(Event)
+				fmt.Printf("cache hit %+v", e)
+				return &e, nil
+			}
 		}
-	}
+	*/
 
 	var event Event
 	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
@@ -295,7 +297,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 
 	eventCache.Set(fmt.Sprint(eventID), event, cache.DefaultExpiration)
-	fmt.Println("cache save #+v", event)
+	fmt.Printf("cache save %+v", event)
 
 	return &event, nil
 }
