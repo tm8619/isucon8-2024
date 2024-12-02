@@ -28,7 +28,7 @@ import (
 var eventCache *cache.Cache
 
 func init() {
-	eventCache = cache.New(500*time.Millisecond, 700*time.Millisecond)
+	eventCache = cache.New(700*time.Millisecond, 1*time.Second)
 }
 
 type User struct {
@@ -232,7 +232,6 @@ func getEvents(all bool) ([]*Event, error) {
 func getEvent(eventID, loginUserID int64) (*Event, error) {
 	if event, found := eventCache.Get(fmt.Sprint(eventID)); found {
 		e := event.(Event)
-		fmt.Println("cachehit:", e)
 		return &e, nil
 	}
 
