@@ -28,7 +28,7 @@ import (
 var eventCache *cache.Cache
 
 func init() {
-	eventCache = cache.New(100*time.Millisecond, 100*time.Millisecond)
+	eventCache = cache.New(500*time.Millisecond, 700*time.Millisecond)
 }
 
 type User struct {
