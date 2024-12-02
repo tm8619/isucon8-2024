@@ -253,19 +253,23 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	var reservation Reservation
 	sheetReservationsMap := make(map[int64]Reservation)
 
-	rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL", event.ID)
-	if err != nil {
-		return nil, err
-	}
-	for rows.Next() {
-		if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+	if c, found := eventCache.Get("reservationMap"); found {
+		sheetReservationsMap = c.(map[int64]Reservation)
+	} else {
+		rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL", event.ID)
+		if err != nil {
 			return nil, err
 		}
-		sheetReservationsMap[reservation.SheetID] = reservation
+		for rows.Next() {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+				return nil, err
+			}
+			sheetReservationsMap[reservation.SheetID] = reservation
+		}
+		eventCache.Set("reservationMap", sheetReservationsMap, cache.DefaultExpiration)
 	}
-	eventCache.Set("reservationMap", sheetReservationsMap, cache.DefaultExpiration)
 
-	rows, err = db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
+	rows, err := db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
 	if err != nil {
 		return nil, err
 	}
