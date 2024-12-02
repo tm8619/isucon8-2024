@@ -28,7 +28,7 @@ import (
 var eventCache *cache.Cache
 
 func init() {
-	eventCache = cache.New(400*time.Millisecond, 1000*time.Millisecond)
+	eventCache = cache.New(0*time.Millisecond, 100*time.Millisecond)
 }
 
 type User struct {
@@ -230,14 +230,16 @@ func getEvents(all bool) ([]*Event, error) {
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
-	// 自分の席が分からなくて良い場合のみキャッシュ
-	if loginUserID == -1 {
-		if event, found := eventCache.Get(fmt.Sprint(eventID)); found {
-			e := event.(Event)
-			fmt.Printf("cache hit %+v", e)
-			return &e, nil
+	/*
+		// 自分の席が分からなくて良い場合のみキャッシュ
+		if loginUserID == -1 {
+			if event, found := eventCache.Get(fmt.Sprint(eventID)); found {
+				e := event.(Event)
+				fmt.Printf("cache hit %+v", e)
+				return &e, nil
+			}
 		}
-	}
+	*/
 
 	var event Event
 	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
@@ -250,26 +252,22 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		"C": &Sheets{},
 	}
 
+	// list reservations
+	rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL", event.ID)
+	if err != nil {
+		return nil, err
+	}
 	var reservation Reservation
-	sheetReservationsMap := make(map[int64]Reservation)
 
-	if c, found := eventCache.Get("reservationMap"); found {
-		sheetReservationsMap = c.(map[int64]Reservation)
-	} else {
-		rows, err := db.Query("SELECT * FROM reservations WHERE canceled_at IS NULL")
-		if err != nil {
+	sheetReservationsMap := make(map[int64]Reservation)
+	for rows.Next() {
+		if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 			return nil, err
 		}
-		for rows.Next() {
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
-				return nil, err
-			}
-			sheetReservationsMap[reservation.SheetID] = reservation
-		}
-		eventCache.Set("reservationMap", sheetReservationsMap, cache.DefaultExpiration)
+		sheetReservationsMap[reservation.SheetID] = reservation
 	}
 
-	rows, err := db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
+	rows, err = db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
 	if err != nil {
 		return nil, err
 	}
@@ -299,6 +297,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 
 	eventCache.Set(fmt.Sprint(eventID), event, cache.DefaultExpiration)
+	fmt.Printf("cache save %+v", event)
 
 	return &event, nil
 }
