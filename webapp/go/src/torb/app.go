@@ -233,8 +233,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	// 自分の席が分からなくて良い場合のみキャッシュ
 	if loginUserID == -1 {
 		if event, found := eventCache.Get(fmt.Sprint(eventID)); found {
-			e := event.(Event)
-			return &e, nil
+			return event.(*Event), nil
 		}
 	}
 
@@ -293,7 +292,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
 	}
 
-	eventCache.Set(fmt.Sprint(eventID), event, cache.DefaultExpiration)
+	eventCache.Set(fmt.Sprint(eventID), &event, cache.DefaultExpiration)
 
 	return &event, nil
 }
