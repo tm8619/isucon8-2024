@@ -235,7 +235,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 
 	// list reservations
-	rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL ORDER BY ReservedAt", event.ID)
+	rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL ORDER BY reserved_at", event.ID)
 	if err != nil {
 		return nil, err
 	}
