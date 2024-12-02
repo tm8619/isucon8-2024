@@ -8,6 +8,7 @@ require (
 	github.com/kaz/pprotein v1.2.4
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 )
 
 require (
