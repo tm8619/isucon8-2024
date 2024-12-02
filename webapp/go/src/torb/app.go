@@ -241,12 +241,12 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 	var reservation Reservation
 
-	sheetReservationsMap := make(map[int64]*Reservation)
+	sheetReservationsMap := make(map[int64]Reservation)
 	for rows.Next() {
 		if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 			return nil, err
 		}
-		sheetReservationsMap[reservation.SheetID] = &reservation
+		sheetReservationsMap[reservation.SheetID] = reservation
 	}
 
 	rows, err = db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
