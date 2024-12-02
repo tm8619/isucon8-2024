@@ -231,7 +231,8 @@ func getEvents(all bool) ([]*Event, error) {
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
 	if event, found := eventCache.Get(fmt.Sprint(eventID)); found {
-		return event.(*Event), nil
+		e := event.(Event)
+		return &e, nil
 	}
 
 	var event Event
@@ -289,7 +290,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
 	}
 
-	eventCache.Set(fmt.Sprint(eventID), &event, cache.DefaultExpiration)
+	eventCache.Set(fmt.Sprint(eventID), event, cache.DefaultExpiration)
 
 	return &event, nil
 }
